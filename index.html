@@ -1,0 +1,86 @@
+<style>
+body {
+    background-color: #aae5a4;
+}
+a:link {
+    text-decoration: none;
+}
+.author {
+    color: #009;
+    font-weight: bold;
+}
+.post {
+    color: #888;
+}
+</style>
+
+<script>
+    const parser = new DOMParser();
+    const XML_r = new XMLHttpRequest();
+
+    var degen_wrapper;
+
+    XML_r.onload=()=>{
+        comments_xml = parser.parseFromString(XML_r.response, "application/xml");
+        arr = comments_to_list(comments_xml)
+        console.log(arr);
+        render_comments_array(arr)
+    };
+    XML_r.open("GET","https://api.rule34.xxx/index.php?page=dapi&s=comment&q=index");
+
+    function comments_to_list(comments){
+        //comments_xml.childNodes[0].childNodes[0].getAttribute("body")
+        len = comments_xml.childNodes[0].childNodes.length
+        arr = new Array(len);
+        for(i=0;i<len;i++){
+            arr[i] = comments_xml.childNodes[0].childNodes[i]
+        }
+        return arr
+    }
+
+    function create_comment_element(comment){
+        node = document.createElement("div")
+        author_elem = document.createElement("a")
+        body_elem = document.createElement("div")
+        post_elem = document.createElement("a")
+
+        author_elem.innerText = comment.getAttribute("creator")
+        author_elem.className = "author"
+        author_elem.href = `https://rule34.xxx/index.php?page=account&s=profile&uname=${author_elem.innerText}`
+
+        post_elem.innerText = `Under #${comment.getAttribute("post_id")}`
+        post_elem.className = "post"
+        post_elem.href = `https://rule34.xxx/index.php?page=post&s=view&id=${comment.getAttribute("post_id")}`
+
+        body_elem.innerText = comment.getAttribute("body")
+        body_elem.className = "body"
+
+
+        node.append(author_elem)
+        node.append(document.createElement("br"))
+        node.append(post_elem)
+        node.append(body_elem)
+        node.append(document.createElement("hr"))
+        return node
+    }
+
+    function render_comments_array(arr){
+        
+        if(!degen_wrapper){
+            return 0;
+        }
+        degen_wrapper.innerHTML = "";
+
+        for(i=0;i<arr.length;i++){
+            node = create_comment_element(arr[i])
+            degen_wrapper.append(node)
+        }
+    }
+
+    window.onload = () => {
+        degen_wrapper = document.getElementById("degen_wrapper")
+        
+        XML_r.send()
+    }
+</script>
+<div id="degen_wrapper"></div>
